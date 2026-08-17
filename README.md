@@ -1,6 +1,10 @@
 # Outguess
 
-A one-screen prototype where a local adaptive word model commits to its next-word prediction before the player enters a word. Each word receives an evasion score based on its modeled probability relative to the locked favorite, then becomes training data for the next round.
+A deliberately small adversarial prediction game. Press `F` or `D`; an on-device context model assigns a probability to both choices, learns from the sequence, and scores each choice with cross entropy:
+
+`score = -log2(P(choice))`
+
+A 50/50 prediction scores exactly one bit. Higher scores mean the player surprised the model.
 
 ## Run
 
@@ -10,4 +14,4 @@ npm test
 npm run serve
 ```
 
-The first prototype deliberately uses an auditable on-device n-gram ensemble rather than a paid language-model endpoint. No entered text leaves the browser.
+No interaction data leaves the browser.

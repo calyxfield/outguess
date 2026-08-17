@@ -11,7 +11,6 @@ if (!process.env.EXTERNAL_SERVER) {
     env: { ...process.env, PORT: "4187" },
     stdio: ["ignore", "pipe", "inherit"],
   });
-
   await new Promise((resolve, reject) => {
     server.stdout.on("data", (chunk) => {
       if (String(chunk).includes("listening")) resolve();
@@ -29,46 +28,57 @@ const browser = await chromium.launch({
     FONTCONFIG_PATH: "/tmp/pw-deps",
   },
 });
+
+async function assertNoOverflow(page, label) {
+  const offenders = await page.evaluate(() =>
+    [...document.querySelectorAll("body *")]
+      .filter((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.right > window.innerWidth + 1 || rect.left < -1;
+      })
+      .map((element) => ({ tag: element.tagName, className: element.className })),
+  );
+  if (offenders.length) throw new Error(`${label} horizontal overflow: ${JSON.stringify(offenders)}`);
+}
+
 try {
-  console.log("browser launched");
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.goto(baseURL, { waitUntil: "domcontentloaded" });
   await page.locator('html[data-ready="true"]').waitFor();
-  console.log("desktop loaded");
-  const firstGuess = (await page.locator("#guess").textContent()).trim();
-  console.log(`locked guess: ${firstGuess}`);
-  await page.evaluate((guess) => {
-    const input = document.querySelector("#word-input");
-    input.value = guess;
-    document.querySelector("#word-form").requestSubmit();
-  }, firstGuess);
-  await page.locator("tbody tr").first().waitFor();
-  console.log("first word scored");
-  const firstCells = await page.locator("tbody tr").first().locator("td").allTextContents();
-  if (firstCells.at(-1) !== "00" || firstCells[1] !== firstGuess) {
-    throw new Error(`Exact prediction was not scored as a catch: ${firstCells.join(" | ")}`);
-  }
 
-  await page.evaluate(() => {
-    const input = document.querySelector("#word-input");
-    input.value = "quasar";
-    input.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true, cancelable: true }));
-  });
-  if ((await page.locator("tbody tr").count()) !== 2) {
-    throw new Error("Space did not commit the second word");
+  await page.keyboard.press("f");
+  await page.locator(".choice-token").first().waitFor();
+  const first = await page.locator(".choice-token").first().textContent();
+  if (first !== "F1.00") throw new Error(`First F was not scored at one bit: ${first}`);
+
+  for (let index = 0; index < 10; index += 1) await page.keyboard.press("f");
+  const probabilityF = Number((await page.locator("#probability-f").textContent()).replace("%", ""));
+  if (probabilityF <= 50) throw new Error(`Predictor did not learn F: ${probabilityF}%`);
+  if ((await page.locator(".choice-token").count()) !== 11) throw new Error("Keyboard choices were dropped");
+
+  await page.locator('[data-choice="d"]').click();
+  if ((await page.locator("#last-choice").textContent()).trim() !== "D") {
+    throw new Error("D button did not register");
   }
-  console.log("second word scored");
 
   await mkdir("artifacts", { recursive: true });
-  await page.waitForTimeout(350);
+  await assertNoOverflow(page, "desktop");
   await page.screenshot({ path: "artifacts/outguess-desktop.png", fullPage: true });
-  console.log("desktop captured");
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await mobile.goto(baseURL, { waitUntil: "domcontentloaded" });
   await mobile.locator('html[data-ready="true"]').waitFor();
+  await mobile.locator('[data-choice="f"]').click();
+  await mobile.locator('[data-choice="d"]').click();
+  await assertNoOverflow(mobile, "mobile");
   await mobile.screenshot({ path: "artifacts/outguess-mobile.png", fullPage: true });
-  console.log(JSON.stringify({ firstGuess, desktop: "artifacts/outguess-desktop.png", mobile: "artifacts/outguess-mobile.png" }));
+
+  console.log(JSON.stringify({
+    choices: 12,
+    probabilityF,
+    desktop: "artifacts/outguess-desktop.png",
+    mobile: "artifacts/outguess-mobile.png",
+  }));
 } finally {
   await browser.close();
   server?.kill("SIGTERM");

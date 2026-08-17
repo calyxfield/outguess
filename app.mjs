@@ -1,115 +1,107 @@
-import { AdaptivePredictor, isValidWord, normalizeWord } from "./model.mjs";
+import { BinaryPredictor } from "./model.mjs";
 
 const elements = {
-  form: document.querySelector("#word-form"),
-  input: document.querySelector("#word-input"),
-  error: document.querySelector("#entry-error"),
-  guess: document.querySelector("#guess"),
-  certainty: document.querySelector("#certainty"),
+  probabilityF: document.querySelector("#probability-f"),
+  probabilityD: document.querySelector("#probability-d"),
+  barF: document.querySelector("#bar-f"),
+  barD: document.querySelector("#bar-d"),
+  lastChoice: document.querySelector("#last-choice"),
+  lastScore: document.querySelector("#last-score"),
+  lastProbability: document.querySelector("#last-probability"),
   average: document.querySelector("#average-score"),
-  count: document.querySelector("#word-count"),
-  catches: document.querySelector("#catch-count"),
-  reset: document.querySelector("#reset"),
+  count: document.querySelector("#choice-count"),
+  accuracy: document.querySelector("#model-accuracy"),
+  sequence: document.querySelector("#sequence"),
   empty: document.querySelector("#empty-state"),
-  tableWrap: document.querySelector("#table-wrap"),
-  log: document.querySelector("#word-log"),
+  buttons: [...document.querySelectorAll("[data-choice]")],
+  reset: document.querySelector("#reset"),
+  live: document.querySelector("#live-result"),
 };
 
 let predictor;
-let lockedPrediction;
 let rounds;
 
-function renderPrediction() {
-  elements.guess.textContent = lockedPrediction.guess;
-  elements.certainty.textContent = `${Math.round(lockedPrediction.confidence * 100)}% CONFIDENCE`;
+function percent(value) {
+  return `${(value * 100).toFixed(1)}%`;
 }
 
-function renderScoreboard() {
-  const score = rounds.length
-    ? Math.round(rounds.reduce((sum, round) => sum + round.score, 0) / rounds.length)
+function renderDistribution() {
+  const distribution = predictor.predict();
+  elements.probabilityF.textContent = percent(distribution.f);
+  elements.probabilityD.textContent = percent(distribution.d);
+  elements.barF.style.width = percent(distribution.f);
+  elements.barD.style.width = percent(distribution.d);
+}
+
+function renderMetrics() {
+  const average = rounds.length
+    ? rounds.reduce((sum, round) => sum + round.loss, 0) / rounds.length
     : null;
-  elements.average.textContent = score === null ? "—" : String(score).padStart(2, "0");
+  const decided = rounds.filter((round) => round.correct !== null);
+  const accuracy = decided.length
+    ? decided.filter((round) => round.correct).length / decided.length
+    : null;
+
+  elements.average.textContent = average === null ? "—" : average.toFixed(2);
   elements.count.textContent = String(rounds.length);
-  elements.catches.textContent = String(rounds.filter((round) => round.exact).length);
+  elements.accuracy.textContent = accuracy === null ? "—" : percent(accuracy);
 }
 
-function appendRound(round) {
-  const row = document.createElement("tr");
-  row.className = "new-row";
+function appendChoice(round) {
+  const item = document.createElement("span");
+  item.className = `choice-token choice-${round.choice}`;
+  item.title = `Model assigned ${percent(round.probability)}`;
 
-  const values = [
-    String(rounds.length).padStart(2, "0"),
-    round.word,
-    round.predicted,
-    round.label,
-    String(round.score).padStart(2, "0"),
-  ];
+  const choice = document.createElement("strong");
+  choice.textContent = round.choice.toUpperCase();
+  const score = document.createElement("small");
+  score.textContent = round.loss.toFixed(2);
 
-  values.forEach((value, index) => {
-    const cell = document.createElement("td");
-    cell.textContent = value;
-    if (index === 1 || index === 2) cell.className = "word";
-    if (index === 3) cell.className = `result-tag${round.exact ? " caught" : ""}`;
-    if (index === 4) cell.className = "score";
-    row.append(cell);
-  });
-
-  elements.log.prepend(row);
+  item.append(choice, score);
+  elements.sequence.append(item);
   elements.empty.hidden = true;
-  elements.tableWrap.hidden = false;
+  item.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 
-function commitWord() {
-  const word = normalizeWord(elements.input.value);
-  if (!word) return;
+function choose(rawChoice) {
+  const distribution = predictor.predict();
+  const round = predictor.score(rawChoice, distribution);
+  rounds.push(round);
+  appendChoice(round);
 
-  if (!isValidWord(word)) {
-    elements.error.textContent = "ONE WORD / LETTERS ONLY";
-    return;
-  }
+  elements.lastChoice.textContent = round.choice.toUpperCase();
+  elements.lastScore.textContent = round.loss.toFixed(2);
+  elements.lastProbability.textContent = `${percent(round.probability)} ASSIGNED`;
+  elements.live.textContent = `${round.choice.toUpperCase()} scored ${round.loss.toFixed(2)} bits`;
 
-  elements.error.textContent = "";
-  const result = predictor.score(word, lockedPrediction);
-  rounds.push(result);
-  appendRound(result);
-  renderScoreboard();
-
-  predictor.observe(word);
-  lockedPrediction = predictor.predict();
-  renderPrediction();
-
-  elements.input.value = "";
-  elements.input.focus();
+  predictor.observe(round.choice);
+  renderDistribution();
+  renderMetrics();
 }
 
 function reset() {
-  predictor = new AdaptivePredictor();
-  lockedPrediction = predictor.predict();
+  predictor = new BinaryPredictor();
   rounds = [];
-  elements.log.replaceChildren();
+  elements.sequence.replaceChildren();
   elements.empty.hidden = false;
-  elements.tableWrap.hidden = true;
-  elements.error.textContent = "";
-  elements.input.value = "";
-  renderPrediction();
-  renderScoreboard();
-  elements.input.focus();
+  elements.lastChoice.textContent = "—";
+  elements.lastScore.textContent = "—";
+  elements.lastProbability.textContent = "NO CHOICE YET";
+  elements.live.textContent = "Game reset";
+  renderDistribution();
+  renderMetrics();
 }
 
-elements.form.addEventListener("submit", (event) => {
+for (const button of elements.buttons) {
+  button.addEventListener("click", () => choose(button.dataset.choice));
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
+  const choice = event.key.toLowerCase();
+  if (choice !== "f" && choice !== "d") return;
   event.preventDefault();
-  commitWord();
-});
-
-elements.input.addEventListener("keydown", (event) => {
-  if (event.key === " " && elements.input.value.trim()) {
-    event.preventDefault();
-    commitWord();
-  }
-});
-
-elements.input.addEventListener("input", () => {
-  elements.error.textContent = "";
+  choose(choice);
 });
 
 elements.reset.addEventListener("click", reset);
