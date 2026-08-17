@@ -83,7 +83,7 @@ function prepareParticipants(randomText, workingMemoryText) {
 
   const participants = [...grouped]
     .filter(([, rows]) => rows.length >= 100)
-    .sort(([left], [right]) => left.localeCompare(right, "en", { numeric: true }))
+    .sort(([left], [right]) => left.localeCompare(right))
     .map(([id, rows]) => {
       rows.sort((left, right) => Number(left.ids) - Number(right.ids));
       const first100 = rows.slice(0, 100);
