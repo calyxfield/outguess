@@ -1,4 +1,5 @@
 import { BinaryPredictor } from "./model.mjs";
+import { POPULATION_PRIOR } from "./population-prior.mjs";
 
 const elements = {
   probabilityF: document.querySelector("#probability-f"),
@@ -43,9 +44,11 @@ function renderMetrics() {
   const average = rounds.length
     ? rounds.reduce((sum, round) => sum + round.loss, 0) / rounds.length
     : null;
-  const decided = rounds.filter((round) => round.correct !== null);
-  const accuracy = decided.length
-    ? decided.filter((round) => round.correct).length / decided.length
+  const accuracy = rounds.length
+    ? rounds.reduce(
+        (sum, round) => sum + (round.correct === null ? 0.5 : Number(round.correct)),
+        0,
+      ) / rounds.length
     : null;
 
   elements.average.textContent = average === null ? "—" : average.toFixed(2);
@@ -86,7 +89,7 @@ function choose(rawChoice) {
 }
 
 function reset() {
-  predictor = new BinaryPredictor();
+  predictor = new BinaryPredictor({ populationPrior: POPULATION_PRIOR });
   rounds = [];
   elements.sequence.replaceChildren();
   elements.empty.hidden = false;

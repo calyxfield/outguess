@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "frozenAt": "2026-08-17T19:47:14Z",
+  "selectionPartition": "validation",
+  "primaryMetric": "mean participant bits per choice over first 100 choices",
+  "config": {
+    "maxContext": 10,
+    "maxLag": 2,
+    "maxRun": 3,
+    "contextOrderDecay": 0.85,
+    "contextShare": 0.03,
+    "behaviorShare": 0,
+    "ensembleShare": 0.01,
+    "probabilityFloor": 0.005,
+    "expertPrior": {
+      "neutral": 2,
+      "context": 6,
+      "switchContext": 2,
+      "run": 1,
+      "lag": 1,
+      "population": 6
+    }
+  },
+  "configHash": "64d93e0913078e2ba10c50ae4972ad8b35849eb4f69648c724affcf5ad80f6ea",
+  "populationPrior": {
+    "partition": "train",
+    "participants": 232,
+    "sourceSha256": "bcfd38bebb626c47e2d542745ba7d4f74c2a0704cd9f4e9c223f44fb5254640f",
+    "splitManifestSha256": "473b8b20f3ae52ace18c13323faf18d466d5ccd16d86342e94733c60d3611578",
+    "packedCountsSha256": "3e9217462b6afc22127c21b2487549283485eca77dcd637efb49972c31653a57"
+  },
+  "validation": {
+    "participants": 77,
+    "neutralBitsPerChoice": 1,
+    "legacyBitsPerChoice": 0.8990962911724072,
+    "improvedBitsPerChoice": 0.8647530056976005,
+    "improvedPopulationBitsPerChoice": 0.8620458560583296,
+    "improvedPopulationAccuracy": 0.6512337662337665
+  }
+}

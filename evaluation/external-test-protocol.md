@@ -6,8 +6,10 @@ Freeze date: 2026-08-17, before computing any predictor metric on this cohort.
 
 ## Inputs
 
-- `study2_random_df.csv`: processed random-generation choices from the authors' repository.
-- `study2_wm_df.csv`: processed working-memory results used for the paper's exclusions.
+- `study2_random_df.csv`: https://osf.io/download/64f4d2a3152ffd022fce1553/
+  (SHA-256 `48d0506420d66d5a2f5c3043065882b3e7482622cc5c7e314a6331a3e63f6195`).
+- `study2_wm_df.csv`: https://osf.io/download/64f4d2a3152ffd022fce1555/
+  (SHA-256 `86e88173ff6f86d354b82995cde8e5ecc4171f51ab1f7a193d20a70db68892ba`).
 
 ## Participant exclusions
 
@@ -24,6 +26,11 @@ Reproduce the authors' Study 2 analysis exactly:
 - Map `key = 1` to `f` and `key = 0` to `d`. The predictor is complement-invariant, so the names are arbitrary.
 - Evaluate only the first 100 chronological valid choices.
 - Do not use reaction time, demographics, task order, working-memory score, or later choices as predictor inputs.
+
+The normalized cohort must contain exactly 142 participants and 14,200 rows.
+Serialize each participant in ascending ID order and each retained row as
+`${id},${ids},${key}\n`. The canonical bytes must have length 424,864 and
+SHA-256 `985dd0efb718c8403735658ff196141cb7a9cff62ced0160255496ad60924f40`.
 
 ## Metrics
 

@@ -71,7 +71,7 @@
             <strong id="choice-count">0</strong>
           </div>
           <div>
-            <span class="section-label">MODEL ACCURACY</span>
+            <span class="section-label" title="A 50/50 forecast counts as half correct">MODEL ACCURACY*</span>
             <strong id="model-accuracy">—</strong>
           </div>
           <button id="reset" class="reset" type="button">RESET</button>
@@ -87,7 +87,8 @@
 
       <footer>
         <p>Score = −log₂ P(your choice). A coin-flip prediction scores 1 bit. Higher means you surprised the model.</p>
-        <p>The predictor is an on-device context model. Nothing you type leaves this page.</p>
+        <p>* A 50/50 forecast counts as half correct.</p>
+        <p>The predictor is an on-device ensemble. Nothing you type leaves this page.</p>
       </footer>
 
       <div id="live-result" class="sr-only" aria-live="assertive"></div>

@@ -50,6 +50,10 @@ try {
   await page.locator(".choice-token").first().waitFor();
   const first = await page.locator(".choice-token").first().textContent();
   if (first !== "F1.00") throw new Error(`First F was not scored at one bit: ${first}`);
+  const firstAccuracy = (await page.locator("#model-accuracy").textContent()).trim();
+  if (firstAccuracy !== "50.0%") {
+    throw new Error(`A neutral first forecast should count as half correct: ${firstAccuracy}`);
+  }
 
   for (let index = 0; index < 10; index += 1) await page.keyboard.press("f");
   const probabilityF = Number((await page.locator("#probability-f").textContent()).replace("%", ""));
