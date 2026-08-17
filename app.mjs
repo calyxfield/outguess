@@ -26,6 +26,13 @@ function percent(value) {
 }
 
 function renderDistribution(distribution) {
+  if (!distribution) {
+    elements.probabilityF.textContent = "—";
+    elements.probabilityD.textContent = "—";
+    elements.barF.style.width = "0%";
+    elements.barD.style.width = "0%";
+    return;
+  }
   elements.probabilityF.textContent = percent(distribution.f);
   elements.probabilityD.textContent = percent(distribution.d);
   elements.barF.style.width = percent(distribution.f);
@@ -87,7 +94,7 @@ function reset() {
   elements.lastScore.textContent = "—";
   elements.lastProbability.textContent = "NO CHOICE YET";
   elements.live.textContent = "Game reset";
-  renderDistribution(predictor.predict());
+  renderDistribution(null);
   renderMetrics();
 }
 
