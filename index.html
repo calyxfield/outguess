@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f1f0eb" />
+    <title>Outguess</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topline">
+        <a class="wordmark" href="./" aria-label="Reset Outguess">OUTGUESS</a>
+        <div class="model-state" aria-label="Predictor status">
+          <span class="status-dot" aria-hidden="true"></span>
+          LOCAL PREDICTOR / ADAPTING
+        </div>
+      </header>
+
+      <section class="playfield" aria-labelledby="game-title">
+        <div class="intro">
+          <p class="eyebrow" id="game-title">NEXT-WORD ADVERSARY</p>
+          <p class="instruction">Write one word at a time. The model commits first. Be coherent and make it wrong.</p>
+        </div>
+
+        <div class="prediction" aria-live="polite">
+          <div class="prediction-label">
+            <span>PREDICTOR HAS LOCKED</span>
+            <span id="certainty">—</span>
+          </div>
+          <div id="guess" class="guess">the</div>
+        </div>
+
+        <form id="word-form" class="entry" novalidate>
+          <label for="word-input">YOUR NEXT WORD</label>
+          <div class="entry-row">
+            <input
+              id="word-input"
+              name="word"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              aria-describedby="entry-hint entry-error"
+              autofocus
+            />
+            <button type="submit" aria-label="Commit word">COMMIT <span aria-hidden="true">↵</span></button>
+          </div>
+          <div class="entry-meta">
+            <span id="entry-hint">SPACE OR ENTER COMMITS</span>
+            <span id="entry-error" class="error" role="alert"></span>
+          </div>
+        </form>
+      </section>
+
+      <section class="results" aria-labelledby="result-title">
+        <div class="scoreboard">
+          <div>
+            <span class="metric-label" id="result-title">AVERAGE EVASION</span>
+            <strong id="average-score">—</strong>
+          </div>
+          <div>
+            <span class="metric-label">WORDS</span>
+            <strong id="word-count">0</strong>
+          </div>
+          <div>
+            <span class="metric-label">EXACT CATCHES</span>
+            <strong id="catch-count">0</strong>
+          </div>
+          <button id="reset" class="reset" type="button">RESET</button>
+        </div>
+
+        <div id="empty-state" class="empty-state">Your scored words will appear here.</div>
+
+        <div id="table-wrap" class="table-wrap" hidden>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">YOU</th>
+                <th scope="col">MODEL</th>
+                <th scope="col">RESULT</th>
+                <th scope="col">SCORE</th>
+              </tr>
+            </thead>
+            <tbody id="word-log"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer>
+        <p>Score compares the probability of your word with the model’s locked favorite. Exact matches score 0.</p>
+        <p>The predictor is an on-device adaptive word model. Nothing you type leaves this page.</p>
+      </footer>
+    </main>
+    <script type="module" src="app.mjs"></script>
+  </body>
+</html>

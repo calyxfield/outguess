@@ -1,0 +1,13 @@
+{
+  "name": "word-escape",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "serve": "node server.mjs",
+    "check": "node browser-check.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}
