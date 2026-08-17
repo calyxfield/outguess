@@ -1,6 +1,6 @@
 # Outguess
 
-A deliberately small adversarial prediction game. Press `F` or `D`; an on-device context model assigns a probability to both choices, learns from the sequence, and scores each choice with cross entropy:
+A deliberately small adversarial prediction game. Press `F` or `D`; an on-device context model privately assigns a probability to both choices from the existing sequence, then reveals the distribution and cross-entropy score after the choice:
 
 `score = -log2(P(choice))`
 

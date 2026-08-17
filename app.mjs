@@ -25,8 +25,7 @@ function percent(value) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-function renderDistribution() {
-  const distribution = predictor.predict();
+function renderDistribution(distribution) {
   elements.probabilityF.textContent = percent(distribution.f);
   elements.probabilityD.textContent = percent(distribution.d);
   elements.barF.style.width = percent(distribution.f);
@@ -74,8 +73,8 @@ function choose(rawChoice) {
   elements.lastProbability.textContent = `${percent(round.probability)} ASSIGNED`;
   elements.live.textContent = `${round.choice.toUpperCase()} scored ${round.loss.toFixed(2)} bits`;
 
+  renderDistribution(distribution);
   predictor.observe(round.choice);
-  renderDistribution();
   renderMetrics();
 }
 
@@ -88,7 +87,7 @@ function reset() {
   elements.lastScore.textContent = "—";
   elements.lastProbability.textContent = "NO CHOICE YET";
   elements.live.textContent = "Game reset";
-  renderDistribution();
+  renderDistribution(predictor.predict());
   renderMetrics();
 }
 
